@@ -7,7 +7,70 @@ description: >
 ---
 
 ## Motivation
-***TL;DR:*** *Selenium Manager is the official driver manager of the Selenium project, and it is shipped out of the box with every Selenium release.*
+***TL;DR:*** *Selenium Manager is the official driver manager of the Selenium project, and it is shipped out of the box with every Selenium release except Debian/Ubuntu/apt as of Feb 2026.*
+
+<table>
+  <tr>
+    <th colspan="2"><h1>Selenium Manager Workaround for Debian/Ubuntu/apt users</h1><h2>Hardcoding Webdriver Location</h2></th>
+  </tr>
+  <tr>
+  <td>Chrome Example</td>
+    <td>
+<pre>
+python3-selenium >= 4.11.2+dfsg1 and Selenium Manager
+-----------------------------------------------------
+
+Upstream restructured the source code so the Selenium Manager is now needed
+to act as a middle layer which will search for available driver interfaces.
+
+Selenium Manager is a binary tool generated using Rust that provides
+automated driver management for Google Chrome, Chromium, Mozilla Firefox,
+and Microsoft Edge.
+
+At the time of writing it's not packaged for Debian. In order to make
+python3-selenium usable with this new circumstance you will need to adjust your
+source in a way to choose the used driver directly and skip the calling of the
+manager code in Selenium. Please have a look at the following example how to
+archieve this.
+
+  -----%&lt;----
+
+  # other includes
+  from selenium.webdriver.chrome.service import Service as ChromeService
+
+  # potential other existing python code in your application
+  # to prepare your setup
+
+  # set the to used driver, here as example for the chrome-driver
+  service = ChromeService(executable_path="/usr/bin/chromedriver")
+  # give the chosen driver as option to the intatioation of Chrome()
+  driver = webdriver.Chrome(options = chrome_options, service = service)
+
+  # more code potentially comes here
+
+  -----&gt;%----
+
+You might want to look at the autopkgtest for python-selenium to see the
+adaption of the manually setup for the driver to use.
+
+https://sources.debian.org/src/python-selenium/4.11.2%2Bdfsg-1/debian/tests/test-chromium/
+
+ -- Carsten Schoenert <c.schoenert@t-online.de>  Fri, 1 Sep 2023 21:33:09 +0530
+</pre>
+<cite><a href="file://///wsl.localhost/Debian/usr/share/doc/python3-selenium/README.Debian">README.Debian from python3-selenium apt package</a></cite>
+    </td>
+  </tr>
+  <tr>
+  <td>Firefox Example</td>
+  <td><pre>
+from selenium.webdriver.firefox.service import Service
+firefox_service = Service(executable_path="/usr/local/bin/geckodriver")
+self.driver = webdriver.Firefox(service = firefox_service)
+</pre>
+<cite><a href="https://stackoverflow.com/a/79255334/4879593">SO answer to "Unable to obtain working Selenium Manager binary" by Michael Dyck</a></cite>
+</td>
+  </tr>
+</table>
 
 Selenium uses the native support implemented by each browser to carry out the automation process. For this reason, Selenium users need to place a component called _driver_ (chromedriver, geckodriver, msedgedriver, etc.) between the script using the Selenium API and the browser. For many years, managing these drivers was a manual process for Selenium users. This way, they had to download the required driver for a browser (chromedriver for Chrome, geckodriver for Firefox, etc.) and place it in the `PATH` or export the driver path as a system property (Java, JavaScript, etc.). But this process was cumbersome and led to maintainability issues.
 
